@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Disaster Information Extraction</title>
+    <link
+      rel="stylesheet"
+      href="{{url_for('static',filename='resultText.css')}}"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0-10/css/all.min.css"
+      integrity="sha512-Pv1WJMqAtVgNNct5vhq+4cgkKinKpV1jCwSWD4am9CjwxsJSCkLWKcE/ZBqHnEE1mHs01c8B0GMvcn/pQ/yrog=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+  </head>
+  <body>
+    <div class="table">
+      <h1>{{sentence}}</h1>
+      <br /><br />
+      <table>
+        <thead>
+          <td>Word</td>
+          <td>Tag</td>
+        </thead>
+        {% for value in result %}
+        <tr>
+          <th>{{value[0]}}</th>
+          <td>{{value[1]}}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </body>
+</html>

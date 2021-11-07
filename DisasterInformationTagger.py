@@ -9,8 +9,10 @@ import pandas as pd
 import numpy as np
 import nltk
 import regex as re
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import tensorflow
+from flask import Flask,render_template,request,redirect,url_for
+from werkzeug.utils import secure_filename
 from csv import DictWriter
 from nltk.tokenize import word_tokenize
 #function to evaluate the custom input
@@ -27,8 +29,8 @@ def setting(mode):
     elif mode == '1':   
         #Viewer mode
         modifier=0
-        tagTable=0
-        tokenArray=1
+        tagTable=1
+        tokenArray=0
     elif mode=='2':
         #Modifier mode
         modifier=1
@@ -40,6 +42,9 @@ def setting(mode):
         tagTable=1
         tokenArray=0
     return modifier,tagTable,tokenArray
+
+#default value of settings is set to mode =3 i.e not 0,1,2
+sett=3
 #combining two csv files to create the dataframe
 TheDataList=[]
 listOfCsv=["datasets/ner_datasetreference.csv","datasets/added.csv"]
@@ -47,7 +52,7 @@ for x in listOfCsv:
     TheDataList.append(pd.read_csv(x,encoding='unicode_escape',skipinitialspace=True,skip_blank_lines=True))
     
 data=pd.concat(TheDataList)
-data.head(-20)
+# data.head(-20)
     
     
 data=data.fillna(method="ffill")
@@ -58,13 +63,13 @@ words.append("ENDPAD")
 
 
 num_words=len(words)
-print("Total number of words",num_words)
+# print("Total number of words",num_words)
 
 
 tags = list(set(data["Tag"].values))
 num_tags = len(tags)
-print("List of tags: " + ', '.join([tag for tag in tags]))
-print(f"Total Number of tags {num_tags}")
+# print("List of tags: " + ', '.join([tag for tag in tags]))
+# print(f"Total Number of tags {num_tags}")
   
     
  #creating class for the model to access
@@ -84,17 +89,85 @@ sentence=getter.sentences
  #len(sentence)
 
     
-     #plot figure for the frequency of length of sentences
-plt.figure(figsize=(14,7))
-plt.hist([len(s) for s in sentence],bins = 50)
-plt.xlabel("Length of Sentences")
-plt.show()
+#      #plot figure for the frequency of length of sentences
+# plt.figure(figsize=(14,7))
+# plt.hist([len(s) for s in sentence],bins = 50)
+# plt.xlabel("Length of Sentences")
+# plt.show()
     
     
-      #plot the figure for frequency of tags
-plt.figure(figsize=(14, 7))
-plt.xlabel("Frequency of tags")
-data.Tag[data.Tag != 'O'].value_counts().plot.barh();
+#       #plot the figure for frequency of tags
+# plt.figure(figsize=(14, 7))
+# plt.xlabel("Frequency of tags")
+# data.Tag[data.Tag != 'O'].value_counts().plot.barh();
+
+
+    #RE EVALUTAION USING POS TAGS
+regTimeEnd=r'^[NV].*'
+regTimeContn=r'^[JRTID].*'
+regNumEnd=r'^[NJ].*'
+regNumContn=r'^[TID].*'
+regLocEnd=r'^[N].*'
+regLocContn=r'^[TID].*'
+regDisEnd=r'^[JRN].*'
+regDisContn=r'^[TID].*'
+   
+fileResult=[]
+def checkFor(s,idx,tag,regEnd,regContn,repeat):
+    if (idx>0 and idx+1<len(s)):
+        prev=s[idx-1]
+        nxt=s[idx+1]
+        if prev[1]=="O":
+            if re.match(regEnd,prev[2]):
+                s[idx-1]=tuple([prev[0],tag,prev[2]])
+                print(s[idx-1])
+            elif (re.match(regContn,prev[2]) and repeat==0):
+                s[idx-1]=tuple([prev[0],tag,prev[2]])
+                s=checkFor(s,idx-1,tag,regEnd,regContn,1)
+        if nxt[1]=="O":
+            if re.match(regEnd,nxt[2]):
+                s[idx+1]=tuple([nxt[0],tag,nxt[2]])
+                print(s[idx+1])
+            elif re.match(regContn,prev[2]):
+                s[idx+1]=tuple([nxt[0],tag,nxt[2]])
+                s=checkFor(s,idx+1,tag,regEnd,regContn,1)
+    return s
+def check_tim(s):
+    for idx,p in enumerate(s):
+        if(p[1]=="B-tim"):
+            s=checkFor(s,idx,"B-tim",regTimeEnd,regTimeContn,0)
+        if(p[1]=="I-tim"):
+            s=checkFor(s,idx,"I-tim",regTimeEnd,regTimeContn,0)            
+    return s    
+def check_num(s):
+    for idx,p in enumerate(s):
+        if(p[1]=="Num"):
+            s=checkFor(s,idx,"Num",regNumEnd,regNumContn,0)            
+    return s
+def check_loc(s):
+    for idx,p in enumerate(s):
+        if(p[1]=="B-geo"):
+            s=checkFor(s,idx,"B-geo",regLocEnd,regLocContn,0)
+        if(p[1]=="I-geo"):
+            s=checkFor(s,idx,"I-geo",regLocEnd,regLocContn,0)
+        if(p[1]=="I-gpe"):
+            s=checkFor(s,idx,"I-gpe",regLocEnd,regLocContn,0)
+        if(p[1]=="B-gpe"):
+            s=checkFor(s,idx,"B-gpe",regLocEnd,regLocContn,0)            
+    return s
+def check_dis(s):
+    for idx,p in enumerate(s):
+        if(p[1]=="Dis"):
+            s=checkFor(s,idx,"Dis",regDisEnd,regDisContn,0)
+        if(p[1]=="Dis-impact"):            
+            s=checkFor(s,idx,"Dis-impact",regDisEnd,regDisContn,0)            
+    return s
+def posRules(s):
+    s=check_tim(s)
+    s=check_num(s)
+    s=check_loc(s)
+    s=check_dis(s)
+    return s
 
 
  #initialize id for words and tags
@@ -103,9 +176,11 @@ tag_idx =  {t : i for i ,t in enumerate(tags)}
   
 model=tensorflow.keras.models.load_model("savedModel")
 
-def validateInput(strCustom,sett):
+
+
+def validateInput(strCustom,sett,method):
+    checkForNew=0
     modifier,tagTable,tokenArray=setting(sett)
-    fields=['Sentence #','Word','POS','Tag']
     outStr=[]
     #strCustom="this is a dummy text"
     A=word_tokenize(strCustom)
@@ -116,7 +191,6 @@ def validateInput(strCustom,sett):
     A_test=[]
     if tokenArray==1:
         print(A)
-    checkForNew=0
     for w in A:
         outStr.append(w)
         if w in words:
@@ -134,22 +208,37 @@ def validateInput(strCustom,sett):
         
     p=model.predict(np.array([A_test]))
     p=np.argmax(p,axis=-1)
-    
+    line=[]
+    c=0
+    for (w,pred) in zip(A_test,p[0]):
+        if words[w-1]!="ENDPAD":
+            line.append(tuple([outStr[c],tags[pred],pos_A[c]]))
+            c+=1
+    print(line)
+    posRules(line)
     print("{:20}\t{}\n".format("Word","Pred"))
     print("-"*55)
-    
-    for (w,pred)in zip(A_test,p[0]):
-    
-        if(words[w-1] != "ENDPAD"):
-            if(tagTable==0):
-                if(tags[pred]!="O"):
-                    print("{:20}\t{}".format(outStr[w-1],tags[pred]))
-            else:
-                print("{:20}\t{}".format(outStr[w-1],tags[pred]))
+    temp=[]
+    for w in line:
+        temp.append((w[0],w[1]))
+        if(tagTable==0):
+            if(w[1]!="O"):
+                print("{:20}\t{}".format(w[0],w[1]))
+        else:
+            print("{:20}\t{}".format(w[0],w[1]))           
     
     
     print("\n\n"+strCustom);
+    if method=="text":
+        checkNew(checkForNew,strCustom,A,pos_A)
+        return temp
+    else:
+        return temp
+        
     
+def checkNew(checkForNew,strCustom,A,pos_A):
+    modifier,tagTable,tokenArray=setting(sett)
+    fields=['Sentence #','Word','POS','Tag']
     if checkForNew==1:
         if modifier==1:
             r=input("\n\nHappy with the tags? if not type ------    x    ------- to help us improve the model:\n")
@@ -171,29 +260,60 @@ def validateInput(strCustom,sett):
                         dictWriter_object.writerow(newDict)
                     f_object.close()
             else:
-                print("Thank you have a nice day!")
-                
+                print("Thank you have a nice day!")        
         counter=0
     
-    
-    
+        
     
 #TAKE A USER GIVEN INPUT AND predict thee output
-x=input("Want to test a CUSTOM INPUT y/n:")
-if x=='y' or x=='Y': 
+def taggerProgram(ask,sett,strInput): 
     
     #There is a massive earthquake in nepal, which has caused a lot of damage to the surrounding around the epicenter
-    ask=input("CHOOSE YOUR INPUT METHOD:\n\n1.Input in CLI (max 100 WORDS..)\n2.Input the address of a text file containing input:\n\n")
-    sett=input("Enter 0=> for running the program in Advanced mode\n 1=> for running the program in Viewer mode\n 2=> for running the program in Modifier mode\n ANY=> for running the program in Default mode\n")
     if ask=='1':
-        strInput=input("Enter the message:\n")
-        validateInput(strInput,sett)
-         
+        result = validateInput(strInput,sett,"text")
+        return result,strInput 
     elif ask=='2':
-        fileName=input("enter the file name:\n")
-        fileName+=".txt"
-        with open(fileName,"r") as file:
+        with open(strInput,"r") as file:
             lines=(line.rstrip() for line in file)
             dataCustom=list(line for line in lines if line)
-        for each in dataCustom:
-            validateInput(each,sett)
+        for idx,each in enumerate(dataCustom):
+            fileResult.append((each,validateInput(each,sett,"file"),idx))
+        return fileResult
+            
+
+
+
+#web application            
+app = Flask(__name__)
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/file',methods=['POST'])
+def file():
+    if(request.files['fileInput']):
+        f = request.files['fileInput']
+        result=secure_filename(f.filename)
+        f.save(result)
+        res=taggerProgram('2','1',result)
+        return render_template('fileReport.html',fullFile=res)
+    else:
+        return redirect(url_for('index'))
+@app.route('/text',methods=['POST'])
+def text():
+    if(request.form["textInput"]):
+        response=request.form
+        result=response["textInput"]
+        res,sen=taggerProgram('1','1',result)
+        return render_template('textReport.html',result=res,sentence=sen)
+    else:
+        return redirect(url_for('index'))
+if __name__ == '__main__':
+   app.run()
+   
+   
+   
+   
+   
+#end   

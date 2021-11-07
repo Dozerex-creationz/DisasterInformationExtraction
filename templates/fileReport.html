@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Disaster Information Extraction</title>
+    <link
+      rel="stylesheet"
+      href="{{url_for('static',filename='resultText.css')}}"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0-10/css/all.min.css"
+      integrity="sha512-Pv1WJMqAtVgNNct5vhq+4cgkKinKpV1jCwSWD4am9CjwxsJSCkLWKcE/ZBqHnEE1mHs01c8B0GMvcn/pQ/yrog=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+  </head>
+  <body>
+    <div class="navig">
+      <span id="prev"><i class="fas fa-arrow-circle-left fa-3x"></i></span>
+      <script>
+        if (document.querySelector("#table0") != null) {
+          document.querySelector("#holder").innerHTML = " ";
+          console.log("hi");
+        }
+      </script>
+      <div id="holder">
+        {% for each in fullFile %}
+        <div id="table{{each[2]}}" class="hidden t">
+          <h1>{{each[0]}}</h1>
+          <br /><br />
+          <table>
+            <thead>
+              <td>Word</td>
+              <td>Tag</td>
+            </thead>
+            {% for value in each[1] %}
+            <tr>
+              <th>{{value[0]}}</th>
+              <td>{{value[1]}}</td>
+            </tr>
+            {% endfor %}
+          </table>
+        </div>
+        {% endfor %}
+      </div>
+      <span id="next"><i class="fas fa-arrow-circle-right fa-3x"></i></span>
+    </div>
+    <script src="{{url_for('static',filename='shiftPage.js')}}"></script>
+  </body>
+</html>

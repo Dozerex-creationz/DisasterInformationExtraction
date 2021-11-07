@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Disaster Information Extraction</title>
+    <link rel="stylesheet" href="{{url_for('static',filename='index.css')}}" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0-10/css/all.min.css"
+      integrity="sha512-Pv1WJMqAtVgNNct5vhq+4cgkKinKpV1jCwSWD4am9CjwxsJSCkLWKcE/ZBqHnEE1mHs01c8B0GMvcn/pQ/yrog=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"
+      integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+  </head>
+  <body>
+    <button id="toggleTofile" class="tgl" onClick="toggle('file')">
+      Switch to file
+    </button>
+
+    <button id="toggleTotext" class="tgl hidden" onClick="toggle('text')">
+      Switch to text
+    </button>
+    <div class="main">
+      <form
+        id="file"
+        class="hidden"
+        action="http://127.0.0.1:5000/file"
+        method="post"
+        enctype="multipart/form-data"
+      >
+        <input type="file" name="fileInput" />
+        <input type="submit" name="submit" value="Generate Report" />
+      </form>
+      <form id="text" action="http://127.0.0.1:5000/text" method="post">
+        <textarea
+          name="textInput"
+          id="textInput"
+          rows="9"
+          columns="20"
+        ></textarea>
+        <input type="submit" name="submit" value="Generate Report" />
+      </form>
+    </div>
+    <div class="hidden results"></div>
+
+    <script src="{{url_for('static',filename='toggle.js')}}"></script>
+  </body>
+</html>

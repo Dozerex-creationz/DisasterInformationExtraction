@@ -1,0 +1,67 @@
+* {
+  margin: 0px;
+  padding: 0px;
+}
+body {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: url(images/bg.jpg);
+}
+
+table,
+tr,
+td,
+th {
+  border-radius: 2%;
+  border: rgba(36, 35, 21, 0.5) 1px solid;
+  padding: 1rem;
+  margin-left: 7rem;
+  margin-right: 7rem;
+  background: rgb(228, 228, 228);
+  color: darkblue;
+}
+thead td {
+  font-size: 150%;
+  color: black;
+  text-decoration: underline;
+}
+.table h1 {
+  text-align: center;
+  width: 100%;
+  background: rgb(148, 154, 245);
+  border-radius: 2%;
+  margin: 1rem;
+}
+.table {
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: flex-start;
+  align-items: center;
+  width: 40vw;
+  height: 60vh;
+  border: rgb(79, 164, 243) 2px solid;
+  border-radius: 5%;
+  background-color: rgba(255, 255, 255, 0.336);
+  padding: 5rem;
+}
+.prev:hover,
+.next:hover {
+  cursor: pointer;
+  box-shadow: 3px 3px 20px silver;
+}
+.navig {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+i {
+  color: white;
+}
+
+.hidden {
+  display: none;
+}
