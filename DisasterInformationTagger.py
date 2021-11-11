@@ -20,6 +20,9 @@ from nltk.tokenize import word_tokenize
 
 #settings varibles
 #setting function
+
+disCom=["flood","quake","cyclone","typhoon","hurricane","storm","disaster","emergency","volcano","eruption","bomb","blast","landfall","landslide","tsunami","massacre"]
+disImp=["evacuation","epicenter","killed","attacked","destruct","destroy","damage","debris","wreck","havoc","death","casualit","martyr"]
 def setting(mode):
     if mode=='0':
         #Advanced mode
@@ -29,7 +32,7 @@ def setting(mode):
     elif mode == '1':   
         #Viewer mode
         modifier=0
-        tagTable=1
+        tagTable=0
         tokenArray=0
     elif mode=='2':
         #Modifier mode
@@ -104,14 +107,15 @@ sentence=getter.sentences
 
     #RE EVALUTAION USING POS TAGS
 regTimeEnd=r'^[NV].*'
-regTimeContn=r'^[JRTID].*'
+regTimeContn=r'^[TID].*'
 regNumEnd=r'^[NJ].*'
 regNumContn=r'^[TID].*'
-regLocEnd=r'^[N].*'
+regLocEnd=r'^[NJ].*'
 regLocContn=r'^[TID].*'
 regDisEnd=r'^[JRN].*'
 regDisContn=r'^[TID].*'
-   
+regNoun=r'^N'
+regVerb=r'^V'   
 fileResult=[]
 def checkFor(s,idx,tag,regEnd,regContn,repeat):
     if (idx>0 and idx+1<len(s)):
@@ -120,17 +124,22 @@ def checkFor(s,idx,tag,regEnd,regContn,repeat):
         if prev[1]=="O":
             if re.match(regEnd,prev[2]):
                 s[idx-1]=tuple([prev[0],tag,prev[2]])
-                print(s[idx-1])
+               
             elif (re.match(regContn,prev[2]) and repeat==0):
                 s[idx-1]=tuple([prev[0],tag,prev[2]])
                 s=checkFor(s,idx-1,tag,regEnd,regContn,1)
+            elif (re.match(regContn,prev[2]) and repeat==1):
+                ntn=s[idx+1]
+                s[idx+1]=tuple([ntn[0],"O",ntn[2]])
         if nxt[1]=="O":
             if re.match(regEnd,nxt[2]):
                 s[idx+1]=tuple([nxt[0],tag,nxt[2]])
-                print(s[idx+1])
-            elif re.match(regContn,prev[2]):
+            elif (re.match(regContn,nxt[2]) and repeat==0):
                 s[idx+1]=tuple([nxt[0],tag,nxt[2]])
                 s=checkFor(s,idx+1,tag,regEnd,regContn,1)
+            elif (re.match(regContn,nxt[2]) and repeat==1):
+                ntn=s[idx-1]
+                s[idx-1]=tuple([ntn[0],"O",ntn[2]])    
     return s
 def check_tim(s):
     for idx,p in enumerate(s):
@@ -145,7 +154,7 @@ def check_num(s):
             s=checkFor(s,idx,"Num",regNumEnd,regNumContn,0)            
     return s
 def check_loc(s):
-    for idx,p in enumerate(s):
+    for idx,p in enumerate(s):  
         if(p[1]=="B-geo"):
             s=checkFor(s,idx,"B-geo",regLocEnd,regLocContn,0)
         if(p[1]=="I-geo"):
@@ -162,7 +171,20 @@ def check_dis(s):
         if(p[1]=="Dis-impact"):            
             s=checkFor(s,idx,"Dis-impact",regDisEnd,regDisContn,0)            
     return s
+def checkDict(s):
+    for p in s:
+        if(p[1]=='O'):
+            for k in disCom:
+                if k in p[0] and re.match(regNoun,p[2]):
+                    p=tuple([p[0],"Dis",p[2]])
+                elif k in p[0]:
+                    p=tuple([p[0],"Dis-impact",p[2]])
+            for r in disImp:
+                if r in p[0]:
+                    p=tuple([p[0],"Dis-impact",p[2]])        
+    return s                
 def posRules(s):
+    s=checkDict(s)
     s=check_tim(s)
     s=check_num(s)
     s=check_loc(s)
@@ -173,7 +195,7 @@ def posRules(s):
  #initialize id for words and tags
 word_idx = {w : i + 1 for i ,w in enumerate(words)}
 tag_idx =  {t : i for i ,t in enumerate(tags)}
-  
+print(tag_idx)  
 model=tensorflow.keras.models.load_model("savedModel")
 
 
@@ -214,19 +236,21 @@ def validateInput(strCustom,sett,method):
         if words[w-1]!="ENDPAD":
             line.append(tuple([outStr[c],tags[pred],pos_A[c]]))
             c+=1
-    print(line)
+    print("hiiiiiiiiiii")
+    print(p[0])
     posRules(line)
     print("{:20}\t{}\n".format("Word","Pred"))
     print("-"*55)
     temp=[]
     for w in line:
-        temp.append((w[0],w[1]))
+        
         if(tagTable==0):
             if(w[1]!="O"):
                 print("{:20}\t{}".format(w[0],w[1]))
+                temp.append((w[0],w[1]))
         else:
             print("{:20}\t{}".format(w[0],w[1]))           
-    
+            temp.append((w[0],w[1]))
     
     print("\n\n"+strCustom);
     if method=="text":
@@ -268,7 +292,7 @@ def checkNew(checkForNew,strCustom,A,pos_A):
 #TAKE A USER GIVEN INPUT AND predict thee output
 def taggerProgram(ask,sett,strInput): 
     
-    #There is a massive earthquake in nepal, which has caused a lot of damage to the surrounding around the epicenter
+    #There is a massive earthquake in Nepal, which has caused a lot of damage to the surrounding around the epicenter
     if ask=='1':
         result = validateInput(strInput,sett,"text")
         return result,strInput 
@@ -305,13 +329,30 @@ def text():
     if(request.form["textInput"]):
         response=request.form
         result=response["textInput"]
-        res,sen=taggerProgram('1','1',result)
+        rest,sen=taggerProgram('1','1',result)
+        newResD,newResDI,newResSP,newResN,newResL,newResT,newResO=[],[],[],[],[],[],[]
+        for x in rest:
+            if x[1]=="Dis":
+                newResD.append(x)
+            elif x[1]=="Dis-impact":
+                newResDI.append(x)
+            elif x[1]=="Num":
+                newResN.append(x)
+            elif x[1]=="B-tim" or x[1]=="I-tim":
+                newResT.append(x)
+            elif x[1]=="B-geo" or x[1]=="I-geo" or x[1]=="B-gpe" or x[1]=="I-gpe":
+                newResL.append(x)
+            elif x[1]=="B-eve" or x[1]=="I-eve" or x[1]=="I-per" or x[1]=="B-per" or x[1]=="I-org" or x[1]=="B-org" or x[1]=="I-nat" or x[1]=="B-nat":
+                newResSP.append(x)
+            else:
+                newResO.append(x)
+        res=[newResD,newResDI,newResT,newResN,newResL,newResSP,newResO]         
         return render_template('textReport.html',result=res,sentence=sen)
     else:
         return redirect(url_for('index'))
 if __name__ == '__main__':
    app.run()
-   
+   debug=True
    
    
    

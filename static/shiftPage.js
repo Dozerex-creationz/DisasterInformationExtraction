@@ -2,7 +2,7 @@ const tableInit=document.querySelector("#table0");
 tableInit.classList.remove("hidden");
 tableInit.classList.add("table");
 
-const allTable=document.querySelectorAll(".t");
+const allTable=document.querySelectorAll(".table");
 count=0
 const prev=document.querySelector("#prev");
 const nxt=document.querySelector("#next");

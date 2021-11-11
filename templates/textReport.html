@@ -18,12 +18,96 @@
     <div class="table">
       <h1>{{sentence}}</h1>
       <br /><br />
-      <table>
+      <table class="Dis">
+        <h3>Disaster:</h3>
         <thead>
           <td>Word</td>
           <td>Tag</td>
         </thead>
-        {% for value in result %}
+        {% for value in result[0] %}
+        <tr>
+          <th>{{value[0]}}</th>
+          <td>{{value[1]}}</td>
+        </tr>
+        {% endfor %}
+      </table>
+
+      <table class="Dis-impact">
+        <h3>Disaster Impact:</h3>
+        <thead>
+          <td>Word</td>
+          <td>Tag</td>
+        </thead>
+        {% for value in result[1] %}
+        <tr>
+          <th>{{value[0]}}</th>
+          <td>{{value[1]}}</td>
+        </tr>
+        {% endfor %}
+      </table>
+
+      <table class="Time">
+        <h3>Time:</h3>
+        <thead>
+          <td>Word</td>
+          <td>Tag</td>
+        </thead>
+        {% for value in result[2] %}
+        <tr>
+          <th>{{value[0]}}</th>
+          <td>{{value[1]}}</td>
+        </tr>
+        {% endfor %}
+      </table>
+      <table class="Num">
+        <h3>Numerical Data:</h3>
+        <thead>
+          <td>Word</td>
+          <td>Tag</td>
+        </thead>
+        {% for value in result[3] %}
+        <tr>
+          <th>{{value[0]}}</th>
+          <td>{{value[1]}}</td>
+        </tr>
+        {% endfor %}
+      </table>
+
+      <table class="Geo">
+        <h3>Geographical Entity:</h3>
+        <thead>
+          <td>Word</td>
+          <td>Tag</td>
+        </thead>
+        {% for value in result[4] %}
+        <tr>
+          <th>{{value[0]}}</th>
+          <td>{{value[1]}}</td>
+        </tr>
+        {% endfor %}
+      </table>
+
+      <table class="Spe">
+        <h3>Specific information:</h3>
+        <thead>
+          <td>Word</td>
+          <td>Tag</td>
+        </thead>
+        {% for value in result[5] %}
+        <tr>
+          <th>{{value[0]}}</th>
+          <td>{{value[1]}}</td>
+        </tr>
+        {% endfor %}
+      </table>
+
+      <table class="">
+        <h3>Other:</h3>
+        <thead>
+          <td>Word</td>
+          <td>Tag</td>
+        </thead>
+        {% for value in result[6] %}
         <tr>
           <th>{{value[0]}}</th>
           <td>{{value[1]}}</td>

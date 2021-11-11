@@ -7,7 +7,7 @@ Created on Tue Sep 28 18:02:34 2021
 
 import pandas as pd
 import numpy as np
-import regex as re
+# import regex as re
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from keras.preprocessing.sequence import pad_sequences
@@ -96,82 +96,80 @@ sentence=getter.sentences
 
       
     
-    #RE EVALUTAION USING POS TAGS
-regTimeEnd=r'^[NV].*'
-regTimeContn=r'^[JRTID].*'
-regNumEnd=r'^[NJ].*'
-regNumContn=r'^[TID].*'
-regLocEnd=r'^[N].*'
-regLocContn=r'^[TID].*'
-regDisEnd=r'^[JRN].*'
-regDisContn=r'^[TID].*'
+#     #RE EVALUTAION USING POS TAGS
+# regTimeEnd=r'^[NV].*'
+# regTimeContn=r'^[JRTID].*'
+# regNumEnd=r'^[NJ].*'
+# regNumContn=r'^[TID].*'
+# regLocEnd=r'^[N].*'
+# regLocContn=r'^[TID].*'
+# regDisEnd=r'^[JRN].*'
+# regDisContn=r'^[TID].*'
    
 
-def checkFor(s,idx,tag,regEnd,regContn,repeat):
-    if (idx>0 and idx+1<len(s)):
-        prev=s[idx-1]
-        nxt=s[idx+1]
-        if prev[1]=="O":
-            if re.match(regEnd,prev[2]):
-                s[idx-1]=tuple([prev[0],tag,prev[2]])
+# def checkFor(s,idx,tag,regEnd,regContn,repeat):
+#     if (idx>0 and idx+1<len(s)):
+#         prev=s[idx-1]
+#         nxt=s[idx+1]
+#         if prev[1]=="O":
+#             if re.match(regEnd,prev[2]):
+#                 s[idx-1]=tuple([prev[0],tag,prev[2]])
               
-            elif (re.match(regContn,prev[2]) and repeat==0):
-                s[idx-1]=tuple([prev[0],tag,prev[2]])
-                s=checkFor(s,idx-1,tag,regEnd,regContn,1)
-        if nxt[1]=="O":
-            if re.match(regEnd,nxt[2]):
-                s[idx+1]=tuple([nxt[0],tag,nxt[2]])
+#             elif (re.match(regContn,prev[2]) and repeat==0):
+#                 s[idx-1]=tuple([prev[0],tag,prev[2]])
+#                 s=checkFor(s,idx-1,tag,regEnd,regContn,1)
+#         if nxt[1]=="O":
+#             if re.match(regEnd,nxt[2]):
+#                 s[idx+1]=tuple([nxt[0],tag,nxt[2]])
               
-            elif re.match(regContn,prev[2]):
-                s[idx+1]=tuple([nxt[0],tag,nxt[2]])
-                s=checkFor(s,idx+1,tag,regEnd,regContn,1)
-    return s
-def check_tim(s):
-    for idx,p in enumerate(s):
-        if(p[1]=="B-tim"):
-            s=checkFor(s,idx,"B-tim",regTimeEnd,regTimeContn,0)
-        if(p[1]=="I-tim"):
-            s=checkFor(s,idx,"I-tim",regTimeEnd,regTimeContn,0)            
-    return s    
-def check_num(s):
-    for idx,p in enumerate(s):
-        if(p[1]=="Num"):
-            s=checkFor(s,idx,"Num",regNumEnd,regNumContn,0)            
-    return s
-def check_loc(s):
-    for idx,p in enumerate(s):
-        if(p[1]=="B-geo"):
-            s=checkFor(s,idx,"B-geo",regLocEnd,regLocContn,0)
-        if(p[1]=="I-geo"):
-            s=checkFor(s,idx,"I-geo",regLocEnd,regLocContn,0)
-        if(p[1]=="I-gpe"):
-            s=checkFor(s,idx,"I-gpe",regLocEnd,regLocContn,0)
-        if(p[1]=="B-gpe"):
-            s=checkFor(s,idx,"B-gpe",regLocEnd,regLocContn,0)            
-    return s
-def check_dis(s):
-    for idx,p in enumerate(s):
-        if(p[1]=="Dis"):
-            s=checkFor(s,idx,"Dis",regDisEnd,regDisContn,0)
-        if(p[1]=="Dis-impact"):            
-            s=checkFor(s,idx,"Dis-impact",regDisEnd,regDisContn,0)            
-    return s
-def posRules(s):
-    s=check_tim(s)
-    s=check_num(s)
-    s=check_loc(s)
-    s=check_dis(s)
-    return s
+#             elif re.match(regContn,prev[2]):
+#                 s[idx+1]=tuple([nxt[0],tag,nxt[2]])
+#                 s=checkFor(s,idx+1,tag,regEnd,regContn,1)
+#     return s
+# def check_tim(s):
+#     for idx,p in enumerate(s):
+#         if(p[1]=="B-tim"):
+#             s=checkFor(s,idx,"B-tim",regTimeEnd,regTimeContn,0)
+#         if(p[1]=="I-tim"):
+#             s=checkFor(s,idx,"I-tim",regTimeEnd,regTimeContn,0)            
+#     return s    
+# def check_num(s):
+#     for idx,p in enumerate(s):
+#         if(p[1]=="Num"):
+#             s=checkFor(s,idx,"Num",regNumEnd,regNumContn,0)            
+#     return s
+# def check_loc(s):
+#     for idx,p in enumerate(s):
+#         if(p[1]=="B-geo"):
+#             s=checkFor(s,idx,"B-geo",regLocEnd,regLocContn,0)
+#         if(p[1]=="I-geo"):
+#             s=checkFor(s,idx,"I-geo",regLocEnd,regLocContn,0)
+#         if(p[1]=="I-gpe"):
+#             s=checkFor(s,idx,"I-gpe",regLocEnd,regLocContn,0)
+#         if(p[1]=="B-gpe"):
+#             s=checkFor(s,idx,"B-gpe",regLocEnd,regLocContn,0)            
+#     return s
+# def check_dis(s):
+#     for idx,p in enumerate(s):
+#         if(p[1]=="Dis"):
+#             s=checkFor(s,idx,"Dis",regDisEnd,regDisContn,0)
+#         if(p[1]=="Dis-impact"):            
+#             s=checkFor(s,idx,"Dis-impact",regDisEnd,regDisContn,0)            
+#     return s
+# def posRules(s):
+#     s=check_tim(s)
+#     s=check_num(s)
+#     s=check_loc(s)
+#     s=check_dis(s)
+#     return s
 for s in sentence:
   
     len_s=len(s)
-    s=posRules(s)
-  
    
    #initialize id for words and tags
 word_idx = {w : i + 1 for i ,w in enumerate(words)}
 tag_idx =  {t : i for i ,t in enumerate(tags)}
-
+print(tag_idx)
 # word_idx["India"]
 # tag_idx["Dis"]
 # tag_idx
@@ -268,7 +266,7 @@ if x=='y' or x=='Y':
     rand_sent=np.random.randint(0,X_test.shape[0])
     p=model.predict(np.array([X_test[rand_sent]]))
     p=np.argmax(p,axis=-1)
-  
+
     y_true=np.argmax(np.array(y_test),axis=-1)[rand_sent]
     print("{:20}{:20}\t{}\n".format("Word","Truth","Pred"))
     print("-"*55)
