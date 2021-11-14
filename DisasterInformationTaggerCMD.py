@@ -68,6 +68,7 @@ num_words=len(words)
 
 
 tags = list(set(data["Tag"].values))
+tags.sort()
 num_tags = len(tags)
 # print("List of tags: " + ', '.join([tag for tag in tags]))
 # print(f"Total Number of tags {num_tags}")
@@ -170,17 +171,18 @@ def check_dis(s):
             s=checkFor(s,idx,"Dis-impact",regDisEnd,regDisContn,0)            
     return s
 def checkDict(s):
-    for p in s:
-        if(p[1]=='O'):
+    for id,p in enumerate(s):
+        if(p[1]!='Dis' or p[1]!='Dis-impact'):
             for k in disCom:
-                if k in p[0] and re.match(regNoun,p[2]):
-                    p=(p[0],"Dis",p[2])
-                elif k in p[0]:
-                    p=(p[0],"Dis-impact",p[2])
-            for k in disImp:
-                if k in p[0]:
-                    p=(p[0],"Dis-impact",p[2])
-    return s                
+                if p[0].find(k)!=-1 and re.match(regNoun,p[2]):
+                    s[id]=tuple([p[0],"Dis",p[2]])
+                elif p[0].find(k)!=-1:
+                    s[id]=tuple([p[0],"Dis-impact",p[2]])                
+            for r in disImp:
+                if p[0].find(r)!=-1:
+                    s[id]=tuple([p[0],"Dis-impact",p[2]])        
+                  
+    return s 
 def posRules(s):
     s=checkDict(s)
     s=check_tim(s)
@@ -193,7 +195,6 @@ def posRules(s):
  #initialize id for words and tags
 word_idx = {w : i + 1 for i ,w in enumerate(words)}
 tag_idx =  {t : i for i ,t in enumerate(tags)}
-print(tag_idx)  
 model=tensorflow.keras.models.load_model("savedModel")
 
 
@@ -236,7 +237,7 @@ def validateInput(strCustom,sett,method):
             c+=1
     print("hiiiiiiiiiii")
     print(p[0])
-    posRules(line)
+    line=posRules(line)
     print(line)
     print("{:20}\t{}\n".format("Word","Pred"))
     print("-"*55)
@@ -299,7 +300,7 @@ def taggerProgram(ask,sett):
     elif ask=='2':
         strInput=input("Enter the fileName:")
         strInput+=".txt"
-        with open(strInput,"r") as file:
+        with open(strInput,"r",errors="ignore") as file:
             lines=(line.rstrip() for line in file)
             dataCustom=list(line for line in lines if line)
         for idx,each in enumerate(dataCustom):

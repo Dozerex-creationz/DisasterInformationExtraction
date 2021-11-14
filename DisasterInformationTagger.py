@@ -13,7 +13,6 @@ import regex as re
 import tensorflow
 from flask import Flask,render_template,request,redirect,url_for
 from werkzeug.utils import secure_filename
-from csv import DictWriter
 from nltk.tokenize import word_tokenize
 #function to evaluate the custom input
 
@@ -21,7 +20,7 @@ from nltk.tokenize import word_tokenize
 #settings varibles
 #setting function
 
-disCom=["flood","quake","cyclone","typhoon","hurricane","storm","disaster","emergency","volcano","eruption","bomb","blast","landfall","landslide","tsunami","massacre"]
+disCom=["flood","quake","cyclone","typhoon","hurricane","storm","disaster","emergency","volcano","depression","rainfall","eruption","bomb","blast","landfall","landslide","tsunami","massacre"]
 disImp=["evacuation","epicenter","killed","attacked","destruct","destroy","damage","debris","wreck","havoc","death","casualit","martyr"]
 def setting(mode):
     if mode=='0':
@@ -70,6 +69,7 @@ num_words=len(words)
 
 
 tags = list(set(data["Tag"].values))
+tags.sort()
 num_tags = len(tags)
 # print("List of tags: " + ', '.join([tag for tag in tags]))
 # print(f"Total Number of tags {num_tags}")
@@ -87,22 +87,7 @@ class Get_sentence(object):
         
 getter=Get_sentence(data)
 sentence=getter.sentences
- #len(getter.data)
- # print(sentence[47959])
- #len(sentence)
 
-    
-#      #plot figure for the frequency of length of sentences
-# plt.figure(figsize=(14,7))
-# plt.hist([len(s) for s in sentence],bins = 50)
-# plt.xlabel("Length of Sentences")
-# plt.show()
-    
-    
-#       #plot the figure for frequency of tags
-# plt.figure(figsize=(14, 7))
-# plt.xlabel("Frequency of tags")
-# data.Tag[data.Tag != 'O'].value_counts().plot.barh();
 
 
     #RE EVALUTAION USING POS TAGS
@@ -172,36 +157,35 @@ def check_dis(s):
             s=checkFor(s,idx,"Dis-impact",regDisEnd,regDisContn,0)            
     return s
 def checkDict(s):
-    for p in s:
-        if(p[1]=='O'):
+    for id,p in enumerate(s):
+        if(p[1]!='Dis' or p[1]!='Dis-impact'):
             for k in disCom:
-                if k in p[0] and re.match(regNoun,p[2]):
-                    p=tuple([p[0],"Dis",p[2]])
-                elif k in p[0]:
-                    p=tuple([p[0],"Dis-impact",p[2]])
+                if p[0].find(k)!=-1 and re.match(regNoun,p[2]):
+                    s[id]=tuple([p[0],"Dis",p[2]])
+                elif p[0].find(k)!=-1:
+                    s[id]=tuple([p[0],"Dis-impact",p[2]])                
             for r in disImp:
-                if r in p[0]:
-                    p=tuple([p[0],"Dis-impact",p[2]])        
+                if p[0].find(r)!=-1:
+                    s[id]=tuple([p[0],"Dis-impact",p[2]])        
+                  
     return s                
 def posRules(s):
     s=checkDict(s)
+    s=check_dis(s)
     s=check_tim(s)
     s=check_num(s)
     s=check_loc(s)
-    s=check_dis(s)
     return s
 
 
  #initialize id for words and tags
 word_idx = {w : i + 1 for i ,w in enumerate(words)}
-tag_idx =  {t : i for i ,t in enumerate(tags)}
-print(tag_idx)  
+tag_idx =  {t : i for i ,t in enumerate(tags)} 
 model=tensorflow.keras.models.load_model("savedModel")
 
 
 
 def validateInput(strCustom,sett,method):
-    checkForNew=0
     modifier,tagTable,tokenArray=setting(sett)
     outStr=[]
     #strCustom="this is a dummy text"
@@ -218,7 +202,6 @@ def validateInput(strCustom,sett,method):
         if w in words:
             A_test.append(word_idx[w])
         else:
-            checkForNew=1
             A_test.append(word_idx["this"])
             
             
@@ -236,56 +219,21 @@ def validateInput(strCustom,sett,method):
         if words[w-1]!="ENDPAD":
             line.append(tuple([outStr[c],tags[pred],pos_A[c]]))
             c+=1
-    print("hiiiiiiiiiii")
-    print(p[0])
-    posRules(line)
-    print("{:20}\t{}\n".format("Word","Pred"))
-    print("-"*55)
+    line=posRules(line)
     temp=[]
     for w in line:
         
         if(tagTable==0):
             if(w[1]!="O"):
-                print("{:20}\t{}".format(w[0],w[1]))
+                
                 temp.append((w[0],w[1]))
         else:
-            print("{:20}\t{}".format(w[0],w[1]))           
+        
             temp.append((w[0],w[1]))
     
-    print("\n\n"+strCustom);
-    if method=="text":
-        checkNew(checkForNew,strCustom,A,pos_A)
-        return temp
-    else:
-        return temp
+
+    return temp
         
-    
-def checkNew(checkForNew,strCustom,A,pos_A):
-    modifier,tagTable,tokenArray=setting(sett)
-    fields=['Sentence #','Word','POS','Tag']
-    if checkForNew==1:
-        if modifier==1:
-            r=input("\n\nHappy with the tags? if not type ------    x    ------- to help us improve the model:\n")
-            if r=='x':
-                len_sen=len(sentence)
-                print("tag-id reference:\n")
-                [print(key,':',value) for key, value in tag_idx.items()]
-                y=len_sen+1
-                
-                print(strCustom+"\n in this sentence\n")
-                counter=0
-                with open('added.csv','a',newline='') as f_object :
-                    dictWriter_object=DictWriter(f_object,fieldnames=fields)
-                    for x in A:
-                        q=input("Enter tag for this word:  -->"+x+"\n")
-                        newstr=f'{y}'
-                        newDict={fields[0]:"Sentence: "+newstr,fields[1]: x,fields[2]:pos_A[counter],fields[3]:q}
-                        counter+=1
-                        dictWriter_object.writerow(newDict)
-                    f_object.close()
-            else:
-                print("Thank you have a nice day!")        
-        counter=0
     
         
     
@@ -297,7 +245,7 @@ def taggerProgram(ask,sett,strInput):
         result = validateInput(strInput,sett,"text")
         return result,strInput 
     elif ask=='2':
-        with open(strInput,"r") as file:
+        with open(strInput,"r",errors="ignore") as file:
             lines=(line.rstrip() for line in file)
             dataCustom=list(line for line in lines if line)
         for idx,each in enumerate(dataCustom):
@@ -320,10 +268,32 @@ def file():
         f = request.files['fileInput']
         result=secure_filename(f.filename)
         f.save(result)
-        res=taggerProgram('2','1',result)
-        return render_template('fileReport.html',fullFile=res)
+        rest=taggerProgram('2','1',result)
+        finRes=[]
+    
+        for p in rest:
+            newResD,newResDI,newResSP,newResN,newResL,newResT,newResO=[],[],[],[],[],[],[]
+            r=p[1]
+            for x in r:
+                if x[1]=="Dis":
+                    newResD.append(x)
+                elif x[1]=="Dis-impact":
+                    newResDI.append(x)
+                elif x[1]=="Num":
+                    newResN.append(x)
+                elif x[1]=="B-tim" or x[1]=="I-tim":
+                    newResT.append(x)
+                elif x[1]=="B-geo" or x[1]=="I-geo" or x[1]=="B-gpe" or x[1]=="I-gpe":
+                    newResL.append(x)
+                elif x[1]=="B-eve" or x[1]=="I-eve" or x[1]=="I-per" or x[1]=="B-per" or x[1]=="I-org" or x[1]=="B-org" or x[1]=="I-nat" or x[1]=="B-nat":
+                    newResSP.append(x)
+                else:
+                    newResO.append(x)
+            finRes.append(tuple([p[0],[newResD,newResDI,newResT,newResN,newResL,newResSP,newResO],p[2]]))   
+        return render_template('fileReport.html',fullFile=finRes)
     else:
         return redirect(url_for('index'))
+    
 @app.route('/text',methods=['POST'])
 def text():
     if(request.form["textInput"]):

@@ -18,6 +18,7 @@
     <div class="table">
       <h1>{{sentence}}</h1>
       <br /><br />
+      {%if result[0]|length %}
       <table class="Dis">
         <h3>Disaster:</h3>
         <thead>
@@ -31,7 +32,7 @@
         </tr>
         {% endfor %}
       </table>
-
+      {% endif %} {%if result[1]|length %}
       <table class="Dis-impact">
         <h3>Disaster Impact:</h3>
         <thead>
@@ -45,7 +46,7 @@
         </tr>
         {% endfor %}
       </table>
-
+      {% endif %} {%if result[2]|length %}
       <table class="Time">
         <h3>Time:</h3>
         <thead>
@@ -59,6 +60,7 @@
         </tr>
         {% endfor %}
       </table>
+      {% endif %}{%if result[3]|length %}
       <table class="Num">
         <h3>Numerical Data:</h3>
         <thead>
@@ -73,6 +75,7 @@
         {% endfor %}
       </table>
 
+      {% endif %}{%if result[4]|length %}
       <table class="Geo">
         <h3>Geographical Entity:</h3>
         <thead>
@@ -86,7 +89,7 @@
         </tr>
         {% endfor %}
       </table>
-
+      {% endif %} {%if result[5]|length %}
       <table class="Spe">
         <h3>Specific information:</h3>
         <thead>
@@ -100,7 +103,7 @@
         </tr>
         {% endfor %}
       </table>
-
+      {% endif %} {%if result[6]|length %}
       <table class="">
         <h3>Other:</h3>
         <thead>
@@ -114,6 +117,7 @@
         </tr>
         {% endfor %}
       </table>
+      {% endif %}
     </div>
   </body>
 </html>
