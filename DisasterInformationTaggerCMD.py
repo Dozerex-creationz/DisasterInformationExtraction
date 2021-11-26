@@ -9,7 +9,6 @@ import pandas as pd
 import numpy as np
 import nltk
 import regex as re
-# import matplotlib.pyplot as plt
 import tensorflow
 from csv import DictWriter
 from nltk.tokenize import word_tokenize
@@ -138,7 +137,7 @@ def checkFor(s,idx,tag,regEnd,regContn,repeat):
                 s=checkFor(s,idx+1,tag,regEnd,regContn,1)
             elif (re.match(regContn,nxt[2]) and repeat==1):
                 ntn=s[idx-1]
-                s[idx-1]=tuple(ntn[0],"O",ntn[2])    
+                s[idx-1]=tuple([ntn[0],"O",ntn[2]])    
     return s
 def check_tim(s):
     for idx,p in enumerate(s):
@@ -235,10 +234,9 @@ def validateInput(strCustom,sett,method):
         if words[w-1]!="ENDPAD":
             line.append(tuple([outStr[c],tags[pred],pos_A[c]]))
             c+=1
-    print("hiiiiiiiiiii")
-    print(p[0])
+
     line=posRules(line)
-    print(line)
+    
     print("{:20}\t{}\n".format("Word","Pred"))
     print("-"*55)
     temp=[]
@@ -254,17 +252,18 @@ def validateInput(strCustom,sett,method):
     
     print("\n\n"+strCustom);
     if method=="text":
-        checkNew(checkForNew,strCustom,A,pos_A)
+        checkNew(checkForNew,strCustom,A,pos_A,line)
         return temp
     else:
         return temp
         
     
-def checkNew(checkForNew,strCustom,A,pos_A):
+def checkNew(checkForNew,strCustom,A,pos_A,line):
     modifier,tagTable,tokenArray=setting(sett)
     fields=['Sentence #','Word','POS','Tag']
     if checkForNew==1:
         if modifier==1:
+            print(line)
             r=input("\n\nHappy with the tags? if not type ------    x    ------- to help us improve the model:\n")
             if r=='x':
                 len_sen=len(sentence)
