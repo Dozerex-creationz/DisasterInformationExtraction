@@ -5,6 +5,8 @@ Created on Fri Nov  5 10:08:44 2021
 @author: Dhakshin Krishna J
 """
 
+#There is a massive earthquake in Nepal, which has caused a lot of damage to the surroundings around the epicenter
+
 import pandas as pd
 import numpy as np
 import nltk
@@ -20,12 +22,14 @@ from nltk.tokenize import word_tokenize
 
 disCom=["flood","quake","cyclone","typhoon","hurricane","storm","disaster","emergency","volcano","eruption","bomb","blast","landfall","landslide","tsunami","massacre"]
 disImp=["evacuation","epicenter","killed","attacked","destruct","destroy","damage","debris","wreck","havoc","death","casualit","martyr"]
+
+
 def setting(mode):
     if mode=='0':
         #Advanced mode
-        modifier=1
-        tagTable=1
-        tokenArray=1
+        modifier=1#modification
+        tagTable=1#complete table of tags with "other" tags also
+        tokenArray=1#array of tokenized sentence
     elif mode == '1':   
         #Viewer mode
         modifier=0
@@ -46,6 +50,8 @@ def setting(mode):
 #default value of settings is set to mode =3 i.e not 0,1,2
 sett=3
 #combining two csv files to create the dataframe
+
+
 TheDataList=[]
 listOfCsv=["datasets/ner_datasetreference.csv","datasets/added.csv"]
 for x in listOfCsv:
@@ -210,7 +216,7 @@ def validateInput(strCustom,sett,method):
     #print(A)
     A_test=[]
     if tokenArray==1:
-        print(A)
+        print(A)# token array is printed
     for w in A:
         outStr.append(w)
         if w in words:
@@ -242,7 +248,7 @@ def validateInput(strCustom,sett,method):
     temp=[]
     for w in line:
         
-        if(tagTable==0):
+        if(tagTable==0):#is tag table is zero not all the elements are printed, the tag of "Other" will be absent
             if(w[1]!="O"):
                 print("{:20}\t{}".format(w[0],w[1]))
                 temp.append((w[0],w[1]))
@@ -288,7 +294,7 @@ def checkNew(checkForNew,strCustom,A,pos_A,line):
     
         
     
-#TAKE A USER GIVEN INPUT AND predict thee output
+#TAKE A USER GIVEN INPUT AND predict the output
 def taggerProgram(ask,sett): 
     
     #There is a massive earthquake in nepal, which has caused a lot of damage to the surrounding around the epicenter

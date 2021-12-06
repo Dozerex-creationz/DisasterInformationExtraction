@@ -5,6 +5,8 @@ Created on Fri Nov  5 10:08:44 2021
 @author: Dhakshin Krishna J
 """
 
+#There is a massive earthquake in Nepal, which has caused a lot of damage to the surroundings around the epicenter
+
 import pandas as pd
 import numpy as np
 import nltk
@@ -89,7 +91,7 @@ sentence=getter.sentences
 
 
 
-    #RE EVALUTAION USING POS TAGS
+    #RE EVALUTAION of O TAGS USING POS TAGS
 regTimeEnd=r'^[NV].*'
 regTimeContn=r'^[TID].*'
 regNumEnd=r'^[NJ].*'
@@ -183,7 +185,7 @@ tag_idx =  {t : i for i ,t in enumerate(tags)}
 model=tensorflow.keras.models.load_model("savedModel")
 
 
-
+#validating input, fitting it accrdn to the shape of the prdiction model and prediction of tags
 def validateInput(strCustom,sett,method):
     modifier,tagTable,tokenArray=setting(sett)
     outStr=[]
@@ -209,17 +211,21 @@ def validateInput(strCustom,sett,method):
     for w in range(104-len(A)):
         A_test.append(word_idx["ENDPAD"])
         
-        
+    #predicting the tags    
     p=model.predict(np.array([A_test]))
     p=np.argmax(p,axis=-1)
     line=[]
     c=0
+    
+    #printing the tags
     for (w,pred) in zip(A_test,p[0]):
         if words[w-1]!="ENDPAD":
             line.append(tuple([outStr[c],tags[pred],pos_A[c]]))
             c+=1
     line=posRules(line)
     temp=[]
+    
+    #packing output for delivery
     for w in line:
         
         if(tagTable==0):
@@ -239,7 +245,7 @@ def validateInput(strCustom,sett,method):
 #TAKE A USER GIVEN INPUT AND predict thee output
 def taggerProgram(ask,sett,strInput): 
     
-    #There is a massive earthquake in Nepal, which has caused a lot of damage to the surrounding around the epicenter
+    #There is a massive earthquake in Nepal, which has caused a lot of damage to the surroundings around the epicenter
     if ask=='1':
         result = validateInput(strInput,sett,"text")
         return result,strInput 
@@ -261,6 +267,8 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 def index():
     return render_template('index.html')
 
+
+#route for file based extraction
 @app.route('/file',methods=['POST'])
 def file():
     if(request.files['fileInput']):
@@ -293,6 +301,7 @@ def file():
     else:
         return redirect(url_for('index'))
     
+#route for text based extraction    
 @app.route('/text',methods=['POST'])
 def text():
     if(request.form["textInput"]):
@@ -319,6 +328,9 @@ def text():
         return render_template('textReport.html',result=res,sentence=sen)
     else:
         return redirect(url_for('index'))
+    
+    
+#main web app.run()
 if __name__ == '__main__':
    app.run()
    debug=True

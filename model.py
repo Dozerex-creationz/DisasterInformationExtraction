@@ -4,6 +4,11 @@ Created on Tue Sep 28 18:02:34 2021
 
 @author: Dhakshin Krishna J & Team
 """
+
+
+#There is a massive earthquake in Nepal, which has caused a lot of damage to the surroundings around the epicenter
+
+
 #To train and save the model
 import pandas as pd
 import numpy as np
@@ -19,7 +24,7 @@ plt.style.use('seaborn')
 
 
 
-#settings varibles
+
 #setting function
 def setting(mode):
     if mode=='0':
@@ -85,7 +90,7 @@ class Get_sentence(object):
     self.grouped=self.data.groupby('Sentence #').apply(agg_func)
     self.sentences=[s for s in self.grouped]
      
-        
+#creating object of the model class...        
 getter=Get_sentence(data)
 sentence=getter.sentences
 
@@ -119,6 +124,9 @@ data.Tag[data.Tag != 'O'].value_counts().plot.barh();
     
 # word_idx.keys()
    
+
+
+#checking max-length of sentences and padding every sentence to max length
 max_len=max([len(s) for s in sentence])
 # max_len
 X=[[word_idx[w[0]] for w in s] for s in sentence]
@@ -143,7 +151,7 @@ X_train,X_test,y_train,y_test=train_test_split(X,y,test_size=0.1,random_state=1)
     
 input_word=Input(shape=(max_len,))
    
-#BI-lstm
+# model layering using BI-lstm
 model=Embedding(input_dim=num_words+1,output_dim=max_len,input_length=max_len)(input_word)
 model=SpatialDropout1D(0.1)(model)
 model=Bidirectional(LSTM(units=52,return_sequences=True,recurrent_dropout=0.1))(model)
@@ -154,25 +162,10 @@ model.compile(optimizer='adam',loss='categorical_crossentropy',metrics=['accurac
 model.summary()
  
   
-#LSTM-----MODEL IGNORED AS BI-LSTM IS MORE EFFECTIVE
-    
-# model1=Embedding(input_dim=num_words+1,output_dim=max_len,input_length=max_len)(input_word)
-# model1=SpatialDropout1D(0.1)(model1)
-# lstm1=LSTM(units=64,return_sequences=True)(model1)
-# lstm2=LSTM(units=64,return_sequences=True)(lstm1)
-# model1=Bidirectional(LSTM(units=52,return_sequences=True,recurrent_dropout=0.1))(model1)
-# out1=TimeDistributed(Dense(num_tags,activation='relu'))(lstm2)
-# model1=Model(input_word,out1)
-  
-# model1.compile(optimizer='adam',loss='categorical_crossentropy',metrics=['accuracy'])
-# model1.summary()
- 
-  
-# ERROR ANALYSED:ONLY APPLICABLE IN JUPYTER NOTEBOOKS
-# plot_model(model,show_shapes=True)
+
     
     
-    
+#fitting model and splitting the test/train data in 20:80 ration    
 model.fit(X_train,np.array(y_train),verbose=1,epochs=1,validation_split=0.2)
   
    
@@ -187,9 +180,7 @@ model.save("savedModel");
 print("-------------------------------Model Stored for future------------")
     
     
-#RANODMLTY PICK A SENTENCE AND TEST THE OUTCOME
-    
-
+#RANODMLY PICK A SENTENCE AND TEST THE OUTCOME
 x=input("Want to test a random sentence from the dataset?y/n:")
 if x=='y' or x=='Y':
     rand_sent=np.random.randint(0,X_test.shape[0])
